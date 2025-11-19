@@ -387,15 +387,14 @@ async def predict(request: PredictionRequest):
 # ============================================================================
 # Additional Endpoints
 # ============================================================================
-@app.get("/features", response_model=Dict[str, List[str]])
+@app.get("/features")
 async def get_features():
     """Get list of expected feature names"""
     if feature_names is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     return {
-        "features": feature_names,
-        "count": len(feature_names)
+        "features": feature_names
     }
 
 
