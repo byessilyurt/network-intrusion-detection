@@ -2,14 +2,23 @@
 
 **Production-Ready Network Intrusion Detection System (NIDS) with Explainable AI**
 
-[![Status](https://img.shields.io/badge/status-production--ready-green)](https://github.com/byessilyurt/network-intrusion-detection)
+[![Status](https://img.shields.io/badge/status-deployed-success)](https://nids-dashboard.onrender.com)
 [![F1 Score](https://img.shields.io/badge/F1--Score-0.8540-blue)](https://github.com/byessilyurt/network-intrusion-detection)
 [![Docker](https://img.shields.io/badge/docker-ready-blue)](https://hub.docker.com)
-[![GitHub](https://img.shields.io/badge/github-repo-blue)](https://github.com/byessilyurt/network-intrusion-detection)
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://nids-dashboard.onrender.com)
 
 A complete machine learning system for detecting volumetric network attacks (DoS/DDoS) using One-Class SVM with SHAP explainability. Includes REST API, interactive dashboard, and Docker deployment.
 
-**Live Demo**: Deploy in one click → [See Deployment Options](#cloud-deployment)
+## 🚀 Live Demo
+
+**Try it now - no installation required:**
+
+- **📊 Dashboard**: [https://nids-dashboard.onrender.com](https://nids-dashboard.onrender.com) - Interactive web interface
+- **🔌 API**: [https://nids-api-6pus.onrender.com](https://nids-api-6pus.onrender.com) - REST API endpoints
+- **📖 API Docs**: [https://nids-api-6pus.onrender.com/docs](https://nids-api-6pus.onrender.com/docs) - Swagger UI
+- **💓 Health**: [https://nids-api-6pus.onrender.com/health](https://nids-api-6pus.onrender.com/health) - API status
+
+> **Note**: Free tier services may sleep after inactivity. First request might take 30-60 seconds to wake up.
 
 ---
 
@@ -115,8 +124,16 @@ Access the services:
 
 ## API Usage
 
+**Base URLs:**
+- **Live API**: `https://nids-api-6pus.onrender.com` (deployed)
+- **Local API**: `http://localhost:8000` (Docker)
+
 ### 1. Health Check
 ```bash
+# Live API
+curl https://nids-api-6pus.onrender.com/health
+
+# Local
 curl http://localhost:8000/health
 ```
 
@@ -132,7 +149,8 @@ curl http://localhost:8000/health
 
 ### 2. Predict Network Flow
 ```bash
-curl -X POST "http://localhost:8000/predict" \
+# Live API
+curl -X POST "https://nids-api-6pus.onrender.com/predict" \
   -H "Content-Type: application/json" \
   -d '{
     "features": {
@@ -145,6 +163,11 @@ curl -X POST "http://localhost:8000/predict" \
       ... (66 total features)
     }
   }'
+
+# Local
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{...}'
 ```
 
 **Response:**
@@ -584,23 +607,31 @@ shap_values = shap_explainer.shap_values(X_scaled, nsamples=50)  # Default: 100
 
 ## Current Status
 
-**Project Phase:** Production Deployment (95% Complete)
+**Project Phase:** ✅ **LIVE IN PRODUCTION** (100% Complete)
+
+**Deployed Services:**
+- ✅ **Dashboard**: [https://nids-dashboard.onrender.com](https://nids-dashboard.onrender.com) - Fully functional
+- ✅ **API**: [https://nids-api-6pus.onrender.com](https://nids-api-6pus.onrender.com) - 5 endpoints active
+- ✅ **SHAP Explainability**: Full feature-level explanations on every prediction
+- ✅ **Docker**: Multi-container deployment with health checks
+- ✅ **Production Model**: One-Class SVM (F1: 0.8540, Precision: 92.4%)
 
 **What's Deployed:**
-- ✅ One-Class SVM model (F1: 0.8540)
-- ✅ SHAP explainability integration
-- ✅ FastAPI REST API with 5 endpoints
-- ✅ Streamlit interactive dashboard
-- ✅ Docker containerization
+- ✅ One-Class SVM model (F1: 0.8540) with StandardScaler
+- ✅ SHAP explainability with production artifacts (55KB bundle)
+- ✅ FastAPI REST API with 5 endpoints (/predict, /health, /model/info, /features, /)
+- ✅ Streamlit interactive dashboard (Single Flow + Batch Analysis + Sample Data)
+- ✅ Docker containerization (Dockerfile.api + Dockerfile.dashboard)
+- ✅ Render.com cloud deployment (Free tier)
 - ✅ Comprehensive testing suite
 - ✅ Production-ready documentation
 
-**What's Next:**
-- ⏳ Optional: Docker build test
-- ⏳ Optional: VAE training (code complete, training pending)
-- ⏳ Optional: Kubernetes deployment configuration
+**Optional Enhancements:**
+- ⏳ VAE training (code complete, training pending)
+- ⏳ Kubernetes deployment configuration
+- ⏳ Prometheus metrics integration
 
-**Production Readiness:** ✅ **READY FOR DEPLOYMENT**
+**Production Status:** ✅ **DEPLOYED AND OPERATIONAL**
 
 ---
 
