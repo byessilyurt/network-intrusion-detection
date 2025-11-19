@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 from pathlib import Path
 
 # Import embedded sample data
-from src.dashboard.sample_data import (
+from sample_data import (
     SAMPLE_BENIGN_FLOW,
     SAMPLE_DOS_ATTACK,
     BENIGN_DESCRIPTION,
