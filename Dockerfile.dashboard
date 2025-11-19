@@ -18,7 +18,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy application code
 COPY src/dashboard/ ./src/dashboard/
-COPY data/raw/ ./data/raw/
+
+# Create data directory (sample data optional - not included in git)
+RUN mkdir -p data/raw
 
 # Create non-root user for security
 RUN useradd -m -u 1000 nids && \
