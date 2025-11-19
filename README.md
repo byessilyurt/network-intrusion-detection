@@ -2,11 +2,14 @@
 
 **Production-Ready Network Intrusion Detection System (NIDS) with Explainable AI**
 
-[![Status](https://img.shields.io/badge/status-production--ready-green)](https://github.com)
-[![F1 Score](https://img.shields.io/badge/F1--Score-0.8540-blue)](https://github.com)
-[![Docker](https://img.shields.io/badge/docker-ready-blue)](https://github.com)
+[![Status](https://img.shields.io/badge/status-production--ready-green)](https://github.com/byessilyurt/network-intrusion-detection)
+[![F1 Score](https://img.shields.io/badge/F1--Score-0.8540-blue)](https://github.com/byessilyurt/network-intrusion-detection)
+[![Docker](https://img.shields.io/badge/docker-ready-blue)](https://hub.docker.com)
+[![GitHub](https://img.shields.io/badge/github-repo-blue)](https://github.com/byessilyurt/network-intrusion-detection)
 
 A complete machine learning system for detecting volumetric network attacks (DoS/DDoS) using One-Class SVM with SHAP explainability. Includes REST API, interactive dashboard, and Docker deployment.
+
+**Live Demo**: Deploy in one click → [See Deployment Options](#cloud-deployment)
 
 ---
 
@@ -299,9 +302,53 @@ uvicorn src.api.app:app --host 0.0.0.0 --port 8000
 streamlit run src/dashboard/app.py --server.port 8501
 ```
 
-### Option 3: Production Deployment
+### Option 3: Cloud Deployment
 
-**Recommendations:**
+Deploy to cloud platforms with one-click Docker deployment:
+
+#### **Render.com** (Recommended - Free Tier Available)
+
+1. Fork this repository on GitHub
+2. Create account at [render.com](https://render.com)
+3. Click "New +" → "Web Service"
+4. Connect your GitHub repository
+5. Configure:
+   - **Environment**: Docker
+   - **Plan**: Free (or upgrade for production)
+   - **Instance Type**: 512MB RAM minimum
+   - **Health Check Path**: `/health`
+6. Add environment variable:
+   ```
+   PORT=8000
+   ```
+7. Deploy!
+
+**Note**: Free tier may take 30-60s for cold starts. For production, upgrade to paid tier for instant responses.
+
+#### **Railway.app**
+
+1. Visit [railway.app](https://railway.app)
+2. Click "Start New Project" → "Deploy from GitHub repo"
+3. Select `network-intrusion-detection`
+4. Railway auto-detects Dockerfile
+5. Add PORT environment variable: `8000`
+6. Deploy
+
+#### **Fly.io**
+
+```bash
+# Install Fly CLI
+curl -L https://fly.io/install.sh | sh
+
+# Login
+fly auth login
+
+# Deploy
+fly launch
+fly deploy
+```
+
+#### **Production Recommendations:**
 - Deploy API behind nginx reverse proxy
 - Use Kubernetes for auto-scaling (5-10 replicas recommended)
 - Enable HTTPS with Let's Encrypt certificates
@@ -316,6 +363,7 @@ MODEL_PATH=/app/models/ocsvm_200k.pkl
 DATA_PATH=/app/data/raw/Monday-WorkingHours.pcap_ISCX.csv
 SHAP_NSAMPLES=100  # Lower for faster inference
 LOG_LEVEL=INFO
+PORT=8000  # Required for cloud platforms
 ```
 
 ---
@@ -589,10 +637,10 @@ If you use this system in your research, please cite:
 
 ```bibtex
 @software{network_intrusion_detection_2025,
-  author = {Your Name},
+  author = {Yusuf Yesilyurt},
   title = {Volumetric Network Attack Detection System with Explainable AI},
   year = {2025},
-  url = {https://github.com/your-username/network-intrusion-detection}
+  url = {https://github.com/byessilyurt/network-intrusion-detection}
 }
 ```
 
@@ -600,9 +648,10 @@ If you use this system in your research, please cite:
 
 ## Contact & Support
 
-- **Issues**: [GitHub Issues](https://github.com/your-username/network-intrusion-detection/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/network-intrusion-detection/discussions)
-- **Email**: your.email@example.com
+- **Repository**: [GitHub](https://github.com/byessilyurt/network-intrusion-detection)
+- **Issues**: [Report Bugs](https://github.com/byessilyurt/network-intrusion-detection/issues)
+- **Discussions**: [Community](https://github.com/byessilyurt/network-intrusion-detection/discussions)
+- **Author**: Yusuf Yesilyurt
 
 ---
 
