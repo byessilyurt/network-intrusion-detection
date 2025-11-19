@@ -1,14 +1,50 @@
 # Volumetric Network Attack Detection System - Current Status
 
-**Last Updated:** 2025-11-19 (Production Deployment Complete)
+**Last Updated:** 2025-11-19 (Live in Production on Render.com)
 **Current Phase:** Production Ready (100% Complete)
-**Status:** ✅ **PRODUCTION READY - DEPLOYMENT COMPLETE**
+**Status:** ✅ **LIVE IN PRODUCTION - FULLY OPERATIONAL**
+
+**Live System URLs:**
+- **Dashboard**: [nids-dashboard.onrender.com](https://nids-dashboard.onrender.com)
+- **API**: [nids-api-6pus.onrender.com](https://nids-api-6pus.onrender.com)
+- **API Docs**: [nids-api-6pus.onrender.com/docs](https://nids-api-6pus.onrender.com/docs)
+
+---
+
+## 🚀 LATEST UPDATES (2025-11-19)
+
+### Production Deployment Complete ✅
+- **Status**: All services deployed and operational on Render.com
+- **Dashboard Fix**: Corrected API_URL in render.yaml to match actual service name (`nids-api-6pus.onrender.com`)
+- **Verification**: User confirmed "it works now" - dashboard successfully connects to API
+- **SHAP Integration**: Full explainability pipeline deployed with production_artifacts.pkl (55KB)
+
+### Repository Cleanup Complete ✅
+- **Files Reduced**: 76 → 44 files (42% reduction)
+- **README Simplified**: 689 → 186 lines (73% reduction)
+- **Removed**:
+  - 8 debug/interim reports
+  - 4 redundant documentation files
+  - 6 one-off training scripts
+  - 11 result files (.pkl, .txt, .json)
+  - 2 data documentation files
+  - 1 backup file
+- **Total Cleanup**: 32 files, 8,874 lines deleted
+- **Result**: Clean, professional repository structure with only production code
+
+### Git History Corrected ✅
+- **Issue**: All commits initially authored by "Claude Code"
+- **Solution**: Two-phase correction
+  1. `git filter-branch` for initial 12 commits
+  2. `git rebase -i HEAD~2` for final 2 commits
+- **Result**: All 14 commits now properly attributed to "Yusuf Yesilyurt"
+- **Status**: Git history clean and accurate
 
 ---
 
 ## ✅ PROJECT STATUS: 100% COMPLETE
 
-**Completion: 100%** - Full production system deployed and documented
+**Completion: 100%** - Full production system deployed, cleaned, and documented
 
 ### What's Complete ✅
 1. ✅ OCSVM re-tuned and validated (F1=0.8540 on DoS, FP=22.55%)
@@ -23,6 +59,9 @@
 10. ✅ **Streamlit Dashboard** - Interactive web UI for SOC analysts
 11. ✅ **Docker Deployment** - Single-container production setup
 12. ✅ **Production Documentation** - Comprehensive README with deployment guide
+13. ✅ **Render.com Deployment** - Live system at nids-dashboard.onrender.com
+14. ✅ **Repository Cleanup** - 42% file reduction, professional structure
+15. ✅ **Git History** - All commits properly attributed
 
 ### Optional Enhancements ⏸️
 1. ⏸️ **Docker build test** (optional validation)
