@@ -13,7 +13,9 @@ from pathlib import Path
 # ============================================================================
 # Configuration
 # ============================================================================
-API_URL = "http://localhost:8000"
+import os
+
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "data" / "raw"
 

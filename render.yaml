@@ -1,0 +1,38 @@
+services:
+  # FastAPI Backend Service
+  - type: web
+    name: nids-api
+    env: docker
+    dockerfilePath: ./Dockerfile.api
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: MODEL_PATH
+        value: /app/models/ocsvm_200k.pkl
+      - key: DATA_PATH
+        value: /app/data/raw/Monday-WorkingHours.pcap_ISCX.csv
+      - key: SHAP_NSAMPLES
+        value: 100
+      - key: LOG_LEVEL
+        value: INFO
+      - key: PYTHONUNBUFFERED
+        value: 1
+
+  # Streamlit Dashboard Service
+  - type: web
+    name: nids-dashboard
+    env: docker
+    dockerfilePath: ./Dockerfile.dashboard
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 8501
+      - key: API_URL
+        sync: false
+        value: https://nids-api.onrender.com
+      - key: PYTHONUNBUFFERED
+        value: 1
