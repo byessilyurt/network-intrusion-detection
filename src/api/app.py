@@ -27,8 +27,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 MODEL_PATH = PROJECT_ROOT / "models" / "ocsvm_200k.pkl"
-DATA_DIR = PROJECT_ROOT / "data" / "raw"
-MONDAY_FILE = DATA_DIR / "Monday-WorkingHours.pcap_ISCX.csv"
+ARTIFACTS_PATH = PROJECT_ROOT / "models" / "production_artifacts.pkl"
 
 # ============================================================================
 # Global Model State
@@ -179,10 +178,10 @@ class ModelInfoResponse(BaseModel):
 # ============================================================================
 @app.on_event("startup")
 async def load_model():
-    """Load OCSVM model, create scaler, and initialize SHAP explainer"""
+    """Load OCSVM model, scaler, and initialize SHAP explainer"""
     global model, scaler, feature_names, shap_explainer, model_metadata
 
-    logger.info("Loading OCSVM model and initializing components...")
+    logger.info("Loading OCSVM model and production artifacts...")
 
     try:
         # 1. Load OCSVM model
@@ -193,34 +192,41 @@ async def load_model():
         if isinstance(model_data, dict):
             model = model_data['model']
             model_metadata = model_data.get('metadata', {})
-            # Get feature names from model if available
-            if 'feature_names' in model_data:
-                feature_names = model_data['feature_names']
-                logger.info(f"✓ Loaded {len(feature_names)} feature names from model")
         else:
             model = model_data
             model_metadata = {}
 
         logger.info(f"✓ Model loaded: {type(model).__name__}")
 
-        # 2. Create scaler (passthrough for production deployment)
-        logger.info("Creating identity scaler for production...")
-        # Use passthrough scaler (no transformation) since model trained on raw features
-        from sklearn.preprocessing import FunctionTransformer
-        scaler = FunctionTransformer(lambda x: x, validate=False)
-        scaler.fit(np.zeros((1, len(feature_names))))  # Dummy fit
-        logger.info(f"✓ Identity scaler created for {len(feature_names)} features")
+        # 2. Load production artifacts (scaler + SHAP background)
+        logger.info(f"Loading production artifacts from {ARTIFACTS_PATH}")
+        with open(ARTIFACTS_PATH, 'rb') as f:
+            artifacts = joblib.load(f)
 
-        # 3. Skip SHAP initialization in production (requires training data)
-        shap_explainer = None
-        logger.info("⚠ SHAP explainer disabled in production (no training data available)")
+        scaler = artifacts['scaler']
+        background_data = artifacts['background_data']
+        feature_names = artifacts['feature_names']
+
+        logger.info(f"✓ Scaler loaded: {type(scaler).__name__}")
+        logger.info(f"✓ Background data: {background_data.shape[0]} samples")
+        logger.info(f"✓ Features: {len(feature_names)}")
+
+        # 3. Initialize SHAP explainer with background data
+        logger.info("Initializing SHAP explainer...")
+        shap_explainer = shap.KernelExplainer(
+            model.decision_function,
+            background_data
+        )
+        logger.info("✓ SHAP explainer ready")
 
         logger.info("=" * 80)
-        logger.info("✓ MODEL LOADED AND READY FOR INFERENCE")
-        logger.info(f"  Model Type: One-Class SVM")
+        logger.info("✓ API READY WITH FULL SHAP EXPLAINABILITY")
+        logger.info(f"  Model: One-Class SVM (nu=0.02, RBF kernel)")
         logger.info(f"  Features: {len(feature_names)}")
         logger.info(f"  F1 Score: 0.8540")
-        logger.info(f"  Production Status: DEPLOYED")
+        logger.info(f"  Precision: 92.4%")
+        logger.info(f"  Recall: 79.4%")
+        logger.info(f"  SHAP: ENABLED")
         logger.info("=" * 80)
 
     except Exception as e:
@@ -328,35 +334,20 @@ async def predict(request: PredictionRequest):
         # Convert to 0-100% confidence
         confidence = min(100.0, max(0.0, abs(anomaly_score) * 100))
 
-        # 6. Get feature importance (use SHAP if available, else use feature values)
-        if shap_explainer is not None:
-            shap_values = shap_explainer.shap_values(X_scaled, nsamples=100)  # Fast approximation
-            shap_importance = np.abs(shap_values[0])
-            top_indices = np.argsort(shap_importance)[::-1][:10]
+        # 6. Get SHAP feature importance
+        shap_values = shap_explainer.shap_values(X_scaled, nsamples=100)  # Fast approximation
+        shap_importance = np.abs(shap_values[0])
+        top_indices = np.argsort(shap_importance)[::-1][:10]
 
-            top_features = [
-                {
-                    "feature": feature_names[idx],
-                    "shap_value": float(shap_values[0][idx]),
-                    "feature_value": float(X[0][idx]),
-                    "importance": float(shap_importance[idx])
-                }
-                for idx in top_indices
-            ]
-        else:
-            # Fallback: use absolute feature values as importance
-            feature_importance = np.abs(X[0])
-            top_indices = np.argsort(feature_importance)[::-1][:10]
-
-            top_features = [
-                {
-                    "feature": feature_names[idx],
-                    "shap_value": 0.0,  # Not available
-                    "feature_value": float(X[0][idx]),
-                    "importance": float(feature_importance[idx])
-                }
-                for idx in top_indices
-            ]
+        top_features = [
+            {
+                "feature": feature_names[idx],
+                "shap_value": float(shap_values[0][idx]),
+                "feature_value": float(X[0][idx]),
+                "importance": float(shap_importance[idx])
+            }
+            for idx in top_indices
+        ]
 
         # 7. Generate human-readable explanation
         if binary_prediction == 1:  # Attack detected
