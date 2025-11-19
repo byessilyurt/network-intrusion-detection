@@ -192,9 +192,10 @@ with tab1:
             feature_names = get_feature_names()
 
             if feature_names is None:
-                st.error("Could not retrieve feature names from API")
+                st.error("❌ Could not retrieve feature names from API. Please ensure the API server is running.")
+                st.stop()
             elif len(df.columns) != 66:
-                st.warning(f"Expected 66 features, got {len(df.columns)}. Prediction may fail.")
+                st.warning(f"⚠️ Expected 66 features, got {len(df.columns)}. Prediction may fail.")
 
             # Analyze button
             if st.button("🔍 Analyze Flow", type="primary", key="analyze_single"):
@@ -319,7 +320,8 @@ with tab2:
             feature_names = get_feature_names()
 
             if feature_names is None:
-                st.error("Could not retrieve feature names from API")
+                st.error("❌ Could not retrieve feature names from API. Please ensure the API server is running.")
+                st.stop()
 
             # Analyze button
             max_flows = min(len(df_batch), 1000)  # Limit to 1000 flows
