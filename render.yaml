@@ -32,7 +32,6 @@ services:
       - key: PORT
         value: 8501
       - key: API_URL
-        sync: false
         value: https://nids-api.onrender.com
       - key: PYTHONUNBUFFERED
         value: 1
