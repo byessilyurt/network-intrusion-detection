@@ -10,6 +10,14 @@ import json
 import plotly.graph_objects as go
 from pathlib import Path
 
+# Import embedded sample data
+from src.dashboard.sample_data import (
+    SAMPLE_BENIGN_FLOW,
+    SAMPLE_DOS_ATTACK,
+    BENIGN_DESCRIPTION,
+    DOS_DESCRIPTION
+)
+
 # ============================================================================
 # Configuration
 # ============================================================================
@@ -410,65 +418,54 @@ with tab2:
             st.error(f"Error processing batch: {str(e)}")
 
 # ============================================================================
-# Tab 3: Sample Data
+# Tab 3: Sample Data (Embedded Samples)
 # ============================================================================
 with tab3:
     st.header("Test with Sample Data")
-    st.markdown("Use real CICIDS2017 data samples to test the detection system.")
+    st.markdown("Use real CICIDS2017 data samples embedded in the application (no file dependencies).")
+    st.success("✅ Embedded sample data available: Benign HTTP flow and DoS Slowloris attack")
 
-    # Check if data exists
-    wednesday_file = DATA_DIR / "Wednesday-workingHours.pcap_ISCX.csv"
+    # Sample selection
+    sample_type = st.radio(
+        "Select sample type",
+        ["Benign Traffic", "DoS Attack"],
+        horizontal=True
+    )
 
-    if not wednesday_file.exists():
-        st.warning(f"Sample data not found at: {wednesday_file}")
-        st.info("Please download CICIDS2017 dataset to use sample data.")
+    # Show description
+    if sample_type == "Benign Traffic":
+        st.info(f"ℹ️ {BENIGN_DESCRIPTION}")
     else:
-        st.success(f"✅ Sample data available: {wednesday_file.name}")
+        st.info(f"ℹ️ {DOS_DESCRIPTION}")
 
-        # Load sample
-        sample_type = st.radio(
-            "Select sample type",
-            ["Benign Traffic", "DoS Attack"],
-            horizontal=True
-        )
+    if st.button("Load Sample", type="primary"):
+        try:
+            # Get embedded sample (instant - no file I/O)
+            if sample_type == "Benign Traffic":
+                sample_dict = SAMPLE_BENIGN_FLOW
+            else:
+                sample_dict = SAMPLE_DOS_ATTACK
 
-        if st.button("Load Sample", type="primary"):
-            with st.spinner("Loading sample data..."):
-                try:
-                    df_sample = pd.read_csv(wednesday_file)
+            # Convert to DataFrame for display
+            sample_df = pd.DataFrame([sample_dict])
 
-                    # Drop metadata
-                    metadata_cols = ['Flow ID', ' Source IP', ' Destination IP', ' Timestamp', ' Label']
-                    label_col = ' Label'
+            # Show sample
+            st.subheader(f"Sample: {sample_type}")
+            st.dataframe(sample_df, use_container_width=True)
 
-                    if label_col in df_sample.columns:
-                        if sample_type == "Benign Traffic":
-                            sample_df = df_sample[df_sample[label_col] == 'BENIGN'].head(1)
-                        else:
-                            sample_df = df_sample[df_sample[label_col].str.contains('DoS', na=False)].head(1)
+            # Save for download
+            csv = sample_df.to_csv(index=False)
+            st.download_button(
+                label="📥 Download Sample CSV",
+                data=csv,
+                file_name=f"sample_{sample_type.lower().replace(' ', '_')}.csv",
+                mime="text/csv"
+            )
 
-                        # Drop metadata
-                        for col in metadata_cols:
-                            if col in sample_df.columns:
-                                sample_df = sample_df.drop(col, axis=1)
+            st.info("💡 Download this sample and upload it in the 'Single Flow Analysis' tab to test the system.")
 
-                        # Show sample
-                        st.subheader(f"Sample: {sample_type}")
-                        st.dataframe(sample_df, use_container_width=True)
-
-                        # Save for download
-                        csv = sample_df.to_csv(index=False)
-                        st.download_button(
-                            label="📥 Download Sample CSV",
-                            data=csv,
-                            file_name=f"sample_{sample_type.lower().replace(' ', '_')}.csv",
-                            mime="text/csv"
-                        )
-
-                        st.info("💡 Download this sample and upload it in the 'Single Flow Analysis' tab to test the system.")
-
-                except Exception as e:
-                    st.error(f"Error loading sample: {str(e)}")
+        except Exception as e:
+            st.error(f"Error loading sample: {str(e)}")
 
 # ============================================================================
 # Footer
