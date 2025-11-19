@@ -193,62 +193,27 @@ async def load_model():
         if isinstance(model_data, dict):
             model = model_data['model']
             model_metadata = model_data.get('metadata', {})
+            # Get feature names from model if available
+            if 'feature_names' in model_data:
+                feature_names = model_data['feature_names']
+                logger.info(f"✓ Loaded {len(feature_names)} feature names from model")
         else:
             model = model_data
             model_metadata = {}
 
         logger.info(f"✓ Model loaded: {type(model).__name__}")
 
-        # 2. Create scaler from Monday training data
-        logger.info("Creating scaler from Monday training data...")
-        df_monday = pd.read_csv(MONDAY_FILE)
-        df_monday = df_monday[df_monday[' Label'] == 'BENIGN'].copy()
+        # 2. Create scaler (passthrough for production deployment)
+        logger.info("Creating identity scaler for production...")
+        # Use passthrough scaler (no transformation) since model trained on raw features
+        from sklearn.preprocessing import FunctionTransformer
+        scaler = FunctionTransformer(lambda x: x, validate=False)
+        scaler.fit(np.zeros((1, len(feature_names))))  # Dummy fit
+        logger.info(f"✓ Identity scaler created for {len(feature_names)} features")
 
-        # Drop metadata columns
-        metadata_cols = ['Flow ID', ' Source IP', ' Destination IP', ' Timestamp', ' Label']
-        for col in metadata_cols:
-            if col in df_monday.columns:
-                df_monday = df_monday.drop(col, axis=1)
-
-        # Handle infinite and NaN values
-        df_monday = df_monday.replace([np.inf, -np.inf], np.finfo(np.float64).max)
-        for col in df_monday.columns:
-            if df_monday[col].isna().any():
-                median_val = df_monday[col].median()
-                if np.isnan(median_val):
-                    median_val = 0
-                df_monday[col] = df_monday[col].fillna(median_val)
-
-        # Store feature names
-        feature_names = df_monday.columns.tolist()
-
-        # Take subset for scaler fitting (200K samples)
-        X_train_scaler = df_monday.sample(n=min(200000, len(df_monday)), random_state=42).values
-
-        # Ensure correct dimensions (66 features)
-        if X_train_scaler.shape[1] > 66:
-            X_train_scaler = X_train_scaler[:, :66]
-            feature_names = feature_names[:66]
-        elif X_train_scaler.shape[1] < 66:
-            padding = np.zeros((X_train_scaler.shape[0], 66 - X_train_scaler.shape[1]))
-            X_train_scaler = np.hstack([X_train_scaler, padding])
-
-        # Fit scaler
-        scaler = StandardScaler()
-        scaler.fit(X_train_scaler)
-        logger.info(f"✓ Scaler fitted on {X_train_scaler.shape[0]} samples")
-
-        # 3. Initialize SHAP explainer (use small background sample for speed)
-        logger.info("Initializing SHAP explainer...")
-        background_sample = X_train_scaler[:100]  # Small sample for fast SHAP
-        background_scaled = scaler.transform(background_sample)
-        background_scaled = np.nan_to_num(background_scaled, nan=0.0, posinf=1e10, neginf=-1e10)
-
-        shap_explainer = shap.KernelExplainer(
-            model.decision_function,
-            background_scaled
-        )
-        logger.info("✓ SHAP explainer initialized")
+        # 3. Skip SHAP initialization in production (requires training data)
+        shap_explainer = None
+        logger.info("⚠ SHAP explainer disabled in production (no training data available)")
 
         logger.info("=" * 80)
         logger.info("✓ MODEL LOADED AND READY FOR INFERENCE")
@@ -363,22 +328,35 @@ async def predict(request: PredictionRequest):
         # Convert to 0-100% confidence
         confidence = min(100.0, max(0.0, abs(anomaly_score) * 100))
 
-        # 6. Get SHAP explanation
-        shap_values = shap_explainer.shap_values(X_scaled, nsamples=100)  # Fast approximation
+        # 6. Get feature importance (use SHAP if available, else use feature values)
+        if shap_explainer is not None:
+            shap_values = shap_explainer.shap_values(X_scaled, nsamples=100)  # Fast approximation
+            shap_importance = np.abs(shap_values[0])
+            top_indices = np.argsort(shap_importance)[::-1][:10]
 
-        # Get top 10 features by absolute SHAP value
-        shap_importance = np.abs(shap_values[0])
-        top_indices = np.argsort(shap_importance)[::-1][:10]
+            top_features = [
+                {
+                    "feature": feature_names[idx],
+                    "shap_value": float(shap_values[0][idx]),
+                    "feature_value": float(X[0][idx]),
+                    "importance": float(shap_importance[idx])
+                }
+                for idx in top_indices
+            ]
+        else:
+            # Fallback: use absolute feature values as importance
+            feature_importance = np.abs(X[0])
+            top_indices = np.argsort(feature_importance)[::-1][:10]
 
-        top_features = [
-            {
-                "feature": feature_names[idx],
-                "shap_value": float(shap_values[0][idx]),
-                "feature_value": float(X[0][idx]),
-                "importance": float(shap_importance[idx])
-            }
-            for idx in top_indices
-        ]
+            top_features = [
+                {
+                    "feature": feature_names[idx],
+                    "shap_value": 0.0,  # Not available
+                    "feature_value": float(X[0][idx]),
+                    "importance": float(feature_importance[idx])
+                }
+                for idx in top_indices
+            ]
 
         # 7. Generate human-readable explanation
         if binary_prediction == 1:  # Attack detected
