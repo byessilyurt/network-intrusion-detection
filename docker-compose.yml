@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  nids:
+    build: .
+    container_name: nids-production
+    ports:
+      - "8000:8000"  # FastAPI
+      - "8501:8501"  # Streamlit Dashboard
+    volumes:
+      - ./models:/app/models:ro  # Read-only models
+      - ./results:/app/results:ro  # Read-only SHAP results
+      - ./data/raw:/app/data/raw:ro  # Optional: CICIDS2017 sample data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MODEL_PATH=/app/models
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  default:
+    name: nids-network

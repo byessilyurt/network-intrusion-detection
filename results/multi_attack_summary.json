@@ -1,0 +1,35 @@
+{
+  "vae_f1_scores": {
+    "PortScan": 0.754974021900697,
+    "Web Attacks": 0.029683808374805207,
+    "Brute Force": 0.03813548725899622
+  },
+  "ocsvm_f1_scores": {
+    "PortScan": 0.713652647624438,
+    "Web Attacks": 0.025276461295418644,
+    "Brute Force": 0.060173420496207636
+  },
+  "vae_avg_f1": 0.2742644391781661,
+  "ocsvm_avg_f1": 0.2663675098053548,
+  "quality_gate_status": {
+    "PortScan": {
+      "vae": "FAIL",
+      "ocsvm": "FAIL"
+    },
+    "Web Attacks": {
+      "vae": "FAIL",
+      "ocsvm": "FAIL"
+    },
+    "Brute Force": {
+      "vae": "FAIL",
+      "ocsvm": "FAIL"
+    }
+  },
+  "winner_per_scenario": {
+    "PortScan": "VAE",
+    "Web Attacks": "VAE",
+    "Brute Force": "OCSVM"
+  },
+  "vae_quality_gate": "FAIL",
+  "ocsvm_quality_gate": "FAIL"
+}
